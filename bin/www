@@ -30,8 +30,11 @@ server.listen(port, () => {
   console.log('Express server running on *:' + port);
   // Enable ngrok
   ngrok.connect({
+    proto: 'http',
     addr: port,
-    subdomain: process.env.NGROK_SUBDOMAIN
+    subdomain: process.env.NGROK_SUBDOMAIN,
+    authtoken: process.env.NGROK_TOKEN,
+    region: 'eu',
   }).then(async url => {
     console.log(`ngrok forwarding: ${url} -> http://localhost:${port}`);
     process.env.WEBHOOK_BASE_URL = url;
