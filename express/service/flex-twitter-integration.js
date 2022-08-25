@@ -56,8 +56,8 @@ async function createScopedWebhooks (conversationSid, identity) {
 
 async function createMessage (conversationSid, author, body) {
   return client.conversations.conversations(conversationSid).messages.create({
-    author: author,
-    body: body,
+    author,
+    body,
     xTwilioWebhookEnabled: true
   })
 }
