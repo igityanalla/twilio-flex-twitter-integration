@@ -12,14 +12,14 @@ const twitterClient = require('twit')({
   access_token_secret: process.env.TWITTER_ACCESS_SECRET
 })
 
-async function fetchParticipantConversations (identity) {
+async function fetchParticipantConversations (handle) {
   return client.conversations.participantConversations.list({
-    identity
+    identity: handle
   })
 }
 
-async function findExistingConversation (identity) {
-  const conversations = await fetchParticipantConversations(identity)
+async function findExistingConversation (handle) {
+  const conversations = await fetchParticipantConversations(handle)
   let existing = conversations.find(
     conversation => conversation.conversationState !== 'closed'
   )
@@ -31,13 +31,12 @@ async function createConversation (handle) {
   return client.conversations.conversations.create({
     friendlyName: `Twitter_conversation_${handle}`
   })
-  // TODO full name in the attributes
 }
 
-async function createParticipant (conversationSid, identity, handle) {
+async function createParticipant (conversationSid, handle) {
   return client.conversations
     .conversations(conversationSid)
-    .participants.create({ identity, attributes: { handle } })
+    .participants.create({ identity: handle })
 }
 
 async function createScopedWebhooks (conversationSid, identity) {
@@ -64,18 +63,18 @@ async function createMessage (conversationSid, author, body) {
 }
 
 async function sendMessageToFlex (identity, handle, body) {
-  let existingConversationSid = await findExistingConversation(identity)
+  let existingConversationSid = await findExistingConversation(handle)
   if (existingConversationSid === undefined) {
     const { sid: conversationSid } = await createConversation(handle)
     console.log('Conversation SID: ', conversationSid)
-    await createParticipant(conversationSid, identity, handle)
+    await createParticipant(conversationSid, handle)
     await createScopedWebhooks(conversationSid, identity)
     existingConversationSid = conversationSid
   }
 
   const { sid: messageSid } = await createMessage(
     existingConversationSid,
-    identity,
+    handle,
     body
   )
   console.log('Message SID: ', messageSid)
