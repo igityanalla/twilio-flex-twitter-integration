@@ -1,5 +1,6 @@
 import React from 'react'
 import { FlexPlugin } from '@twilio/flex-plugin'
+import QuickReplies from './Components/QuickReplies'
 
 const PLUGIN_NAME = 'Plugin'
 
@@ -39,5 +40,9 @@ export default class Plugin extends FlexPlugin {
     }
 
     flex.TaskChannels.register(twitter)
+
+    flex.MessageInputV2.Content.add(<QuickReplies key='qr' />, {
+      sortOrder: -1
+    })
   }
 }
