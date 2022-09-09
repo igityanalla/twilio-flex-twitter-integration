@@ -36,8 +36,9 @@ router.post('/send-message', async function (req, res) {
   // Check to make sure this is a message sent from the agent
   if (req.body.Source === 'SDK') {
     const identity = req.query.identity
-    const body = req.body.Body
-    sendMessageToTwitter(identity, body)
+    const { Body: body, Attributes: attributes } = req.body
+    const replyOptions = JSON.parse(attributes)
+    sendMessageToTwitter(identity, body, replyOptions)
   }
 })
 

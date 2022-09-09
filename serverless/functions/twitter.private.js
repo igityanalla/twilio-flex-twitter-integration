@@ -1,10 +1,3 @@
-require('dotenv').config()
-
-const client = require('twilio')(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-)
-
 const twitterClient = require('twit')({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
@@ -12,14 +5,14 @@ const twitterClient = require('twit')({
   access_token_secret: process.env.TWITTER_ACCESS_SECRET
 })
 
-async function fetchParticipantConversations (identity) {
+async function fetchParticipantConversations (client, handle) {
   return client.conversations.participantConversations.list({
-    identity
+    identity: hanlde
   })
 }
 
-async function findExistingConversation (identity) {
-  const conversations = await fetchParticipantConversations(identity)
+async function findExistingConversation (client, handle) {
+  const conversations = await fetchParticipantConversations(client, handle)
   let existing = conversations.find(
     conversation => conversation.conversationState !== 'closed'
   )
@@ -27,20 +20,24 @@ async function findExistingConversation (identity) {
   return existing !== undefined ? existing.conversationSid : undefined
 }
 
-async function createConversation (handle) {
+async function createConversation (client, handle) {
   return client.conversations.conversations.create({
     friendlyName: `Twitter_conversation_${handle}`
   })
-  // TODO full name in the attributes
 }
 
-async function createParticipant (conversationSid, identity, handle) {
+async function createParticipant (client, conversationSid, handle) {
   return client.conversations
     .conversations(conversationSid)
-    .participants.create({ identity, attributes: { handle } })
+    .participants.create({ identity: handle })
 }
 
-async function createScopedWebhooks (conversationSid, identity) {
+async function createScopedWebhooks (
+  client,
+  domainName,
+  conversationSid,
+  identity
+) {
   await client.conversations.conversations(conversationSid).webhooks.create({
     'configuration.filters': 'onMessageAdded',
     target: 'studio',
@@ -51,37 +48,39 @@ async function createScopedWebhooks (conversationSid, identity) {
     target: 'webhook',
     'configuration.filters': 'onMessageAdded',
     'configuration.method': 'POST',
-    'configuration.url': `${process.env.WEBHOOK_BASE_URL}/send-message?identity=${identity}`
+    'configuration.url': `https://${domainName}/send-message?identity=${identity}`
   })
 }
 
-async function createMessage (conversationSid, author, body) {
+async function createMessage (client, conversationSid, author, body) {
   return client.conversations.conversations(conversationSid).messages.create({
-    author: author,
-    body: body,
+    author,
+    body,
     xTwilioWebhookEnabled: true
   })
 }
 
-async function sendMessageToFlex (identity, handle, body) {
-  let existingConversationSid = await findExistingConversation(identity)
+async function sendMessageToFlex (client, domainName, identity, handle, body) {
+  let existingConversationSid = await findExistingConversation(client, handle)
   if (existingConversationSid === undefined) {
-    const { sid: conversationSid } = await createConversation(handle)
+    const { sid: conversationSid } = await createConversation(client, handle)
     console.log('Conversation SID: ', conversationSid)
-    await createParticipant(conversationSid, identity, handle)
-    await createScopedWebhooks(conversationSid, identity)
+    await createParticipant(client, conversationSid, handle)
+    await createScopedWebhooks(client, domainName, conversationSid, identity)
     existingConversationSid = conversationSid
   }
 
   const { sid: messageSid } = await createMessage(
+    client,
     existingConversationSid,
-    identity,
+    handle,
     body
   )
   console.log('Message SID: ', messageSid)
 }
 
-async function sendMessageToTwitter (identity, body) {
+async function sendMessageToTwitter (identity, body, replyOptions) {
+  const messageData = packageTwitterMessageData(body, replyOptions)
   const url = 'direct_messages/events/new'
   const params = {
     event: {
@@ -90,9 +89,7 @@ async function sendMessageToTwitter (identity, body) {
         target: {
           recipient_id: identity
         },
-        message_data: {
-          text: body
-        }
+        message_data: messageData
       }
     }
   }
@@ -102,6 +99,25 @@ async function sendMessageToTwitter (identity, body) {
       console.error(error)
     }
   })
+}
+
+const packageTwitterMessageData = (body, replyOptions) => {
+  let optionsObj = {}
+  if (replyOptions[0]) {
+    const options = replyOptions.map(quickReply => ({
+      label: quickReply,
+      description: quickReply
+    }))
+    optionsObj = {
+      quick_reply: {
+        type: 'options',
+        options
+      }
+    }
+  }
+  // Structure for message_data property on Twitter request
+  const messageData = { text: body, ...optionsObj }
+  return messageData
 }
 
 module.exports = { sendMessageToFlex, sendMessageToTwitter }
