@@ -81,7 +81,7 @@ async function sendMessageToFlex (identity, handle, body) {
 }
 
 async function sendMessageToTwitter (identity, body, replyOptions) {
-  const messageData = getTwitterMessageData(body, replyOptions)
+  const messageData = packageTwitterMessageData(body, replyOptions)
   const url = 'direct_messages/events/new'
   const params = {
     event: {
@@ -102,8 +102,7 @@ async function sendMessageToTwitter (identity, body, replyOptions) {
   })
 }
 
-const getTwitterMessageData = (body, replyOptions) => {
-  let formattedMsg = body
+const packageTwitterMessageData = (body, replyOptions) => {
   let optionsObj = {}
   if (replyOptions[0]) {
     const options = replyOptions.map(quickReply => ({
@@ -118,7 +117,7 @@ const getTwitterMessageData = (body, replyOptions) => {
     }
   }
   // Structure for message_data property on Twitter request
-  const messageData = { text: formattedMsg, ...optionsObj }
+  const messageData = { text: body, ...optionsObj }
   return messageData
 }
 

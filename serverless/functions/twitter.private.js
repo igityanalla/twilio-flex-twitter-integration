@@ -79,7 +79,8 @@ async function sendMessageToFlex (client, domainName, identity, handle, body) {
   console.log('Message SID: ', messageSid)
 }
 
-async function sendMessageToTwitter (identity, body) {
+async function sendMessageToTwitter (identity, body, replyOptions) {
+  const messageData = packageTwitterMessageData(body, replyOptions)
   const url = 'direct_messages/events/new'
   const params = {
     event: {
@@ -88,9 +89,7 @@ async function sendMessageToTwitter (identity, body) {
         target: {
           recipient_id: identity
         },
-        message_data: {
-          text: body
-        }
+        message_data: messageData
       }
     }
   }
@@ -100,6 +99,25 @@ async function sendMessageToTwitter (identity, body) {
       console.error(error)
     }
   })
+}
+
+const packageTwitterMessageData = (body, replyOptions) => {
+  let optionsObj = {}
+  if (replyOptions[0]) {
+    const options = replyOptions.map(quickReply => ({
+      label: quickReply,
+      description: quickReply
+    }))
+    optionsObj = {
+      quick_reply: {
+        type: 'options',
+        options
+      }
+    }
+  }
+  // Structure for message_data property on Twitter request
+  const messageData = { text: body, ...optionsObj }
+  return messageData
 }
 
 module.exports = { sendMessageToFlex, sendMessageToTwitter }

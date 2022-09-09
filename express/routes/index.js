@@ -38,7 +38,6 @@ router.post('/send-message', async function (req, res) {
     const identity = req.query.identity
     const { Body: body, Attributes: attributes } = req.body
     const replyOptions = JSON.parse(attributes)
-    console.log(replyOptions)
     sendMessageToTwitter(identity, body, replyOptions)
   }
 })

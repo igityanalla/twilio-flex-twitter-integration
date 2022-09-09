@@ -27,9 +27,10 @@ const QuickReplies = ({ task }) => {
 
   useEffect(() => {
     Actions.replaceAction('SendMessage', (payload, original) => {
+      const messageAttributes = ref.current.filter((i) => i);
       const updatedPayload = {
         ...payload,
-        messageAttributes: ref.current,
+        messageAttributes,
       };
       original(updatedPayload);
       setInputs(defaultState.inputs);
