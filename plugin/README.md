@@ -6,8 +6,13 @@ Twilio Flex Plugins allow you to customize the appearance and behavior of [Twili
 
 ## Setup
 This plugin assumes that any Twitter-related tasks will be created with an additional `customChannel` attribute which has a value of `Twitter`. If you're using Twilio Studio, you can add this key:value to the boilerplate JSON that you'll find under the attributes in the [Send To Flex widget](https://www.twilio.com/docs/studio/widget-library/send-flex). Your attributes should look something like this
-```js
-{"name": "{{trigger.message.ChannelAttributes.from}}", "channelType": "web", "channelSid": "{{trigger.message.ChannelSid}}", "customChannel": "Twitter"}
+```json
+{
+   "name":"{{trigger.message.ChannelAttributes.from}}",
+   "channelType":"web",
+   "channelSid":"{{trigger.message.ChannelSid}}",
+   "customChannel":"Twitter"
+}
 ```
 
 Make sure you have [Node.js](https://nodejs.org) as well as [`npm`](https://npmjs.com). We support Node >= 10.12 (and recommend the _even_ versions of Node). Afterwards, install the dependencies by running `npm install`:
