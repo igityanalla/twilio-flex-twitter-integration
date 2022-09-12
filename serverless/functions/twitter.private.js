@@ -7,7 +7,7 @@ const twitterClient = require('twit')({
 
 async function fetchParticipantConversations (client, handle) {
   return client.conversations.participantConversations.list({
-    identity: hanlde
+    identity: handle
   })
 }
 
