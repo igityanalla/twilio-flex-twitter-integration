@@ -4,7 +4,7 @@ Twilio Flex Plugins allow you to customize the appearance and behavior of [Twili
 * Displays the Twitter icon for Twitter-related communications in the task list
 * Adds an interface for appending Twitter Quick Replies to agent messages
 
-![Image of Flex Plugin for Twitter](https://user-images.githubusercontent.com/46247485/189676875-ba0b96bc-2a0f-4ead-84ba-d616249604ee.png)
+![Image of Flex Plugin for Twitter](https://user-images.githubusercontent.com/46247485/189676226-62f017b9-8351-406a-ab22-f34eb269e9fc.png)
 
 ## Setup
 This plugin assumes that any Twitter-related tasks will be created with an additional `customChannel` attribute which has a value of `Twitter`. If you're using Twilio Studio, you can add this key:value to the boilerplate JSON that you'll find under the attributes in the [Send To Flex widget](https://www.twilio.com/docs/studio/widget-library/send-flex). Your attributes should look something like this
